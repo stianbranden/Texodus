@@ -1,4 +1,12 @@
 <template>
+  <Teleport to="body">
+    <div
+      v-if="isDragging && dragItem"
+      class="fb-drag-ghost"
+      :style="{ left: ghostX + 'px', top: ghostY + 'px' }"
+    >{{ dragItem.name }}</div>
+  </Teleport>
+
   <div class="file-browser">
     <div class="fb-header">
       <span class="fb-folder-label" :title="settingsStore.sidebarFolder || ''">
@@ -25,8 +33,13 @@
           :class="{
             'is-dir': item.isDirectory,
             'is-active': !item.isDirectory && item.path === editorStore.filePath,
+            'is-drop-target': item.isDirectory && dropTarget === item.path,
+            'is-dragging': isDragging && dragItem?.path === item.path,
           }"
           :style="{ paddingLeft: `${0.5 + item.depth * 1}rem` }"
+          :data-fb-path="item.path"
+          :data-fb-dir="item.isDirectory ? '1' : undefined"
+          @pointerdown="onPointerDown($event, item)"
           @click="handleItemClick(item, index)"
         >
           <span v-if="item.isDirectory && loadingPath === item.path" class="fb-spinner fb-spinner--inline"></span>
@@ -40,8 +53,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { readDir, type DirEntry } from '@tauri-apps/plugin-fs';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { readDir, rename, type DirEntry } from '@tauri-apps/plugin-fs';
 import { open } from '@tauri-apps/plugin-dialog';
 import { useSettingsStore } from '../stores/settings';
 import { useEditorStore } from '../stores/editor';
@@ -62,6 +75,15 @@ interface TreeItem {
 const treeItems = ref<TreeItem[]>([]);
 const loading = ref(false);
 const loadingPath = ref<string | null>(null);
+
+const dragItem = ref<TreeItem | null>(null);
+const dropTarget = ref<string | null>(null);
+const isDragging = ref(false);
+const ghostX = ref(0);
+const ghostY = ref(0);
+let mouseDownPos: { x: number; y: number } | null = null;
+let wasDragging = false;
+const DRAG_THRESHOLD = 5;
 
 const folderName = computed(() => {
   if (!settingsStore.sidebarFolder) return 'No folder';
@@ -125,6 +147,7 @@ async function loadRoot(folderPath: string) {
 }
 
 async function handleItemClick(item: TreeItem, index: number) {
+  if (wasDragging) { wasDragging = false; return; }
   if (item.isDirectory) {
     if (item.expanded) {
       let count = 0;
@@ -152,6 +175,109 @@ async function handleItemClick(item: TreeItem, index: number) {
   }
 }
 
+function parentDir(filePath: string): string {
+  const sep = filePath.includes('\\') ? '\\' : '/';
+  const parts = filePath.split(sep);
+  parts.pop();
+  return parts.join(sep);
+}
+
+function onPointerDown(event: PointerEvent, item: TreeItem) {
+  if (item.isDirectory || event.button !== 0) return;
+  event.preventDefault();
+  (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  dragItem.value = item;
+  mouseDownPos = { x: event.clientX, y: event.clientY };
+}
+
+function resolveDropTarget(el: HTMLElement | null): string | null {
+  if (!dragItem.value) return null;
+  const li = el?.closest('[data-fb-path]') as HTMLElement | null;
+  const liPath = li?.dataset.fbPath;
+  if (!liPath) return null;
+  const targetDir = li!.dataset.fbDir ? liPath : parentDir(liPath);
+  if (targetDir === parentDir(dragItem.value.path)) return null;
+  if (targetDir === dragItem.value.path) return null;
+  return targetDir;
+}
+
+function onDocPointerMove(event: PointerEvent) {
+  if (!dragItem.value || !mouseDownPos) return;
+
+  const dx = event.clientX - mouseDownPos.x;
+  const dy = event.clientY - mouseDownPos.y;
+
+  if (!isDragging.value) {
+    if (Math.sqrt(dx * dx + dy * dy) < DRAG_THRESHOLD) return;
+    isDragging.value = true;
+    document.body.style.userSelect = 'none';
+  }
+
+  ghostX.value = event.clientX;
+  ghostY.value = event.clientY;
+
+  const el = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement | null;
+  dropTarget.value = resolveDropTarget(el);
+}
+
+function onDocPointerUp(event: PointerEvent) {
+  if (!dragItem.value) return;
+
+  if (isDragging.value) {
+    const el = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement | null;
+    const finalTarget = resolveDropTarget(el) ?? dropTarget.value;
+    if (finalTarget) performMove(dragItem.value, finalTarget);
+  }
+
+  wasDragging = isDragging.value;
+  dragItem.value = null;
+  dropTarget.value = null;
+  isDragging.value = false;
+  mouseDownPos = null;
+  document.body.style.userSelect = '';
+}
+
+async function performMove(src: TreeItem, destDirPath: string) {
+  const sep = destDirPath.includes('\\') ? '\\' : '/';
+  const destFilePath = destDirPath + sep + src.name;
+  try {
+    await rename(src.path, destFilePath);
+    if (editorStore.filePath === src.path) editorStore.filePath = destFilePath;
+    await refreshAffectedDirs(src.path, destDirPath);
+  } catch (e) {
+    console.error('Move failed:', e);
+  }
+}
+
+async function refreshAffectedDirs(srcPath: string, destDirPath: string) {
+  const srcDir = parentDir(srcPath);
+
+  const idx = treeItems.value.findIndex(i => i.path === srcPath);
+  if (idx !== -1) treeItems.value.splice(idx, 1);
+
+  const refreshDir = async (dirPath: string) => {
+    const dirItem = treeItems.value.find(i => i.path === dirPath && i.isDirectory);
+    if (!dirItem?.expanded) return;
+    const dirIdx = treeItems.value.findIndex(i => i.path === dirPath);
+    if (dirIdx === -1) return;
+    const entries = await readDir(dirPath);
+    const children = await toItems(entries, dirPath, dirItem.depth + 1);
+    let count = 0;
+    for (let i = dirIdx + 1; i < treeItems.value.length; i++) {
+      if (treeItems.value[i].depth > dirItem.depth) count++;
+      else break;
+    }
+    treeItems.value.splice(dirIdx + 1, count, ...children);
+  };
+
+  if (destDirPath === settingsStore.sidebarFolder) {
+    await loadRoot(destDirPath);
+  } else {
+    await refreshDir(destDirPath);
+    if (srcDir !== destDirPath) await refreshDir(srcDir);
+  }
+}
+
 async function openFolder() {
   const selected = await open({ directory: true, multiple: false });
   if (!selected || typeof selected !== 'string') return;
@@ -161,9 +287,17 @@ async function openFolder() {
 }
 
 onMounted(async () => {
+  document.addEventListener('pointermove', onDocPointerMove);
+  document.addEventListener('pointerup', onDocPointerUp);
   if (settingsStore.sidebarFolder) {
     await loadRoot(settingsStore.sidebarFolder);
   }
+});
+
+onUnmounted(() => {
+  document.removeEventListener('pointermove', onDocPointerMove);
+  document.removeEventListener('pointerup', onDocPointerUp);
+  document.body.style.userSelect = '';
 });
 </script>
 
@@ -303,6 +437,16 @@ onMounted(async () => {
 
 .fb-item.is-dir { font-weight: 500; }
 
+.fb-item.is-drop-target {
+  background: var(--accent-subtle);
+  outline: 1px solid var(--accent-color);
+  outline-offset: -1px;
+}
+
+.fb-item:not(.is-dir) { cursor: grab; }
+
+.fb-item.is-dragging { opacity: 0.4; cursor: grabbing; }
+
 @keyframes fb-spin {
   to { transform: rotate(360deg); }
 }
@@ -343,5 +487,22 @@ onMounted(async () => {
 .fb-name {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+</style>
+
+<style>
+.fb-drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  background: var(--bg-secondary, #fff);
+  border: 1px solid var(--accent-color, #888);
+  color: var(--text-color, #000);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  z-index: 9999;
+  white-space: nowrap;
+  transform: translate(12px, -50%);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 </style>
