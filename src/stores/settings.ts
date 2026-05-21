@@ -47,6 +47,7 @@ interface PersistedSettings {
   recentFiles: string[];
   sidebarFolder: string | null;
   sidebarVisible: boolean;
+  sidebarWidth: number;
 }
 
 interface SettingsState extends PersistedSettings {
@@ -64,6 +65,7 @@ const DEFAULTS: PersistedSettings = {
   recentFiles: [],
   sidebarFolder: null,
   sidebarVisible: false,
+  sidebarWidth: 240,
 };
 
 function loadFromStorage(): SettingsState {
@@ -105,6 +107,7 @@ export const useSettingsStore = defineStore('settings', {
     },
     setSidebarFolder(path: string | null) { this.sidebarFolder = path; },
     setSidebarVisible(v: boolean) { this.sidebarVisible = v; },
+    setSidebarWidth(w: number) { this.sidebarWidth = Math.max(150, Math.min(600, w)); },
     persist() {
       if (typeof localStorage === 'undefined') return;
       try {

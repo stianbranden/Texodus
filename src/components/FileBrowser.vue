@@ -7,7 +7,7 @@
     >{{ dragItem.name }}</div>
   </Teleport>
 
-  <div class="file-browser">
+  <div class="file-browser" :style="{ width: settingsStore.sidebarWidth + 'px' }">
     <div class="fb-header">
       <span class="fb-folder-label" :title="settingsStore.sidebarFolder || ''">
         {{ folderName }}
@@ -16,6 +16,8 @@
         <span class="fb-icon" :style="{ '--icon': `url(${iconOpen})` }"></span>
       </button>
     </div>
+
+    <div class="fb-resize-handle" @pointerdown.stop="onResizePointerDown"></div>
 
     <div v-if="!settingsStore.sidebarFolder" class="fb-placeholder">
       <button class="fb-open-btn" @click="openFolder">Open Folder…</button>
@@ -84,6 +86,10 @@ const ghostY = ref(0);
 let mouseDownPos: { x: number; y: number } | null = null;
 let wasDragging = false;
 const DRAG_THRESHOLD = 5;
+
+const isResizing = ref(false);
+let resizeStartX = 0;
+let resizeStartWidth = 0;
 
 const folderName = computed(() => {
   if (!settingsStore.sidebarFolder) return 'No folder';
@@ -201,7 +207,19 @@ function resolveDropTarget(el: HTMLElement | null): string | null {
   return targetDir;
 }
 
+function onResizePointerDown(event: PointerEvent) {
+  isResizing.value = true;
+  resizeStartX = event.clientX;
+  resizeStartWidth = settingsStore.sidebarWidth;
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+}
+
 function onDocPointerMove(event: PointerEvent) {
+  if (isResizing.value) {
+    settingsStore.setSidebarWidth(resizeStartWidth + (event.clientX - resizeStartX));
+    return;
+  }
   if (!dragItem.value || !mouseDownPos) return;
 
   const dx = event.clientX - mouseDownPos.x;
@@ -221,6 +239,13 @@ function onDocPointerMove(event: PointerEvent) {
 }
 
 function onDocPointerUp(event: PointerEvent) {
+  if (isResizing.value) {
+    isResizing.value = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    settingsStore.persist();
+    return;
+  }
   if (!dragItem.value) return;
 
   if (isDragging.value) {
@@ -303,14 +328,29 @@ onUnmounted(() => {
 
 <style scoped>
 .file-browser {
-  width: 240px;
   flex-shrink: 0;
+  position: relative;
   display: flex;
   flex-direction: column;
   background: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
   overflow: hidden;
   transition: background 0.25s, border-color 0.25s;
+}
+
+.fb-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 10;
+}
+
+.fb-resize-handle:hover {
+  background: var(--accent-color);
+  opacity: 0.4;
 }
 
 .fb-header {
