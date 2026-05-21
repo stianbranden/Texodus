@@ -18,7 +18,7 @@ import DOMPurify from 'dompurify';
 
 const editorStore = useEditorStore();
 const settingsStore = useSettingsStore();
-const { setPreviewElement, syncFromPreview } = useMarkdownPreview();
+const { setPreviewElement, syncFromPreview, getEditorElement } = useMarkdownPreview();
 const previewRef = ref(null);
 
 // Configure marked
@@ -63,7 +63,7 @@ watch(
   { immediate: true }
 );
 
-const toggleMarkdownCheckbox = (index) => {
+const toggleMarkdownCheckbox = async (index) => {
   const original = editorStore.content;
   
   // Mask fenced code blocks to prevent matching checkboxes in them
@@ -89,12 +89,16 @@ const toggleMarkdownCheckbox = (index) => {
   }
   
   if (foundStart !== -1) {
-    const newContent = 
-      original.substring(0, foundStart) + 
-      (isChecked ? '[ ]' : '[x]') + 
+    const newContent =
+      original.substring(0, foundStart) +
+      (isChecked ? '[ ]' : '[x]') +
       original.substring(foundStart + 3);
-    
+
+    const editorEl = getEditorElement();
+    const savedScroll = editorEl?.scrollTop ?? 0;
     editorStore.updateContent(newContent);
+    await nextTick();
+    if (editorEl) editorEl.scrollTop = savedScroll;
   }
 };
 

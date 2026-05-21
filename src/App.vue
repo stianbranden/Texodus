@@ -6,14 +6,19 @@
         :layoutMode="settingsStore.layoutMode"
         :themeMode="settingsStore.themeMode"
         :title="windowTitle"
+        :sidebarVisible="settingsStore.sidebarVisible"
         @toggle-layout="settingsStore.setLayoutMode($event)"
         @cycle-theme="settingsStore.cycleTheme()"
         @format="handleFormat"
+        @toggle-sidebar="toggleSidebar"
       />
-      <EditorLayout :layoutMode="settingsStore.layoutMode">
-        <template #editor><TextEditor /></template>
-        <template #preview><MarkdownPreview /></template>
-      </EditorLayout>
+      <div class="main-layout">
+        <FileBrowser v-if="settingsStore.sidebarVisible" />
+        <EditorLayout :layoutMode="settingsStore.layoutMode">
+          <template #editor><TextEditor /></template>
+          <template #preview><MarkdownPreview /></template>
+        </EditorLayout>
+      </div>
     </div>
     <UnsavedChangesDialog />
     <AboutDialog />
@@ -34,6 +39,7 @@ import KeyboardShortcuts from './components/KeyboardShortcuts.vue';
 import UnsavedChangesDialog from './components/UnsavedChangesDialog.vue';
 import AboutDialog from './components/AboutDialog.vue';
 import SettingsDialog from './components/SettingsDialog.vue';
+import FileBrowser from './components/FileBrowser.vue';
 import {
   openFile, saveFile, saveFileAs, newFile,
   loadFileFromPath, updateWindowTitle,
@@ -58,6 +64,11 @@ const { getEditorElement } = useMarkdownPreview();
 // the imports in the file is fine.
 
 const handleFormat = (format) => applyFormat(format, getEditorElement());
+
+function toggleSidebar() {
+  settingsStore.setSidebarVisible(!settingsStore.sidebarVisible);
+  settingsStore.persist();
+}
 
 // ── Rebuild native menu when recent files change ──────────────────────────────
 
@@ -201,6 +212,13 @@ onUnmounted(() => {
   width: 100vw;
   overflow: hidden;
   background: var(--bg-color);
+}
+
+.main-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
 }
 
 </style>

@@ -45,6 +45,8 @@ interface PersistedSettings {
   previewFont: string;
   fontSize: number;
   recentFiles: string[];
+  sidebarFolder: string | null;
+  sidebarVisible: boolean;
 }
 
 interface SettingsState extends PersistedSettings {
@@ -60,6 +62,8 @@ const DEFAULTS: PersistedSettings = {
   previewFont: PREVIEW_FONTS[0].value,
   fontSize: 14,
   recentFiles: [],
+  sidebarFolder: null,
+  sidebarVisible: false,
 };
 
 function loadFromStorage(): SettingsState {
@@ -99,6 +103,8 @@ export const useSettingsStore = defineStore('settings', {
     clearRecentFiles() {
       this.recentFiles = [];
     },
+    setSidebarFolder(path: string | null) { this.sidebarFolder = path; },
+    setSidebarVisible(v: boolean) { this.sidebarVisible = v; },
     persist() {
       if (typeof localStorage === 'undefined') return;
       try {

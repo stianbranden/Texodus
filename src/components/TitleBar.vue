@@ -8,6 +8,15 @@
 
     <!-- Right: View & Theme controls (moved from toolbar) -->
     <div class="titlebar-controls">
+      <button
+        class="tb-btn icon-only"
+        :class="{ active: sidebarVisible }"
+        :title="sidebarVisible ? 'Close sidebar' : 'Open sidebar'"
+        @click="$emit('toggle-sidebar')"
+      >
+        <span class="tb-icon" :style="{ '--icon': `url(${sidebarVisible ? iconClosePaneIcon : iconOpenPaneIcon})` }"></span>
+      </button>
+
       <FormatMenu @format="$emit('format', $event)" />
 
       <div class="layout-switcher">
@@ -47,14 +56,17 @@ import iconLayoutPreview from '../assets/icons/icons8-preview-100.png';
 import iconThemeSystem from '../assets/icons/icons8-operating-system-100.png';
 import iconThemeLight from '../assets/icons/icons8-sun-100.png';
 import iconThemeDark from '../assets/icons/icons8-do-not-disturb-ios-100.png';
+import iconOpenPaneIcon from '../assets/icons/icons8-open-pane-100.png';
+import iconClosePaneIcon from '../assets/icons/icons8-close-pane-100.png';
 
 const props = defineProps({
   layoutMode: String,
   themeMode: String,
   title: { type: String, default: 'Texodus' },
+  sidebarVisible: { type: Boolean, default: false },
 });
 
-defineEmits(['toggle-layout', 'cycle-theme', 'format']);
+defineEmits(['toggle-layout', 'cycle-theme', 'format', 'toggle-sidebar']);
 
 const layoutModes = [
   { value: 'split', label: 'Split View', icon: iconLayoutSplit },

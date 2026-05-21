@@ -16,12 +16,14 @@ async function wrapSelection(
   const end = textarea.selectionEnd;
   const content = store.content;
   const selected = content.substring(start, end) || defaultText;
+  const savedScroll = textarea.scrollTop;
 
   store.updateContent(
     content.substring(0, start) + before + selected + after + content.substring(end)
   );
 
   await nextTick();
+  textarea.scrollTop = savedScroll;
   textarea.focus();
   const newStart = start + before.length;
   textarea.setSelectionRange(newStart, newStart + selected.length);
@@ -32,10 +34,12 @@ async function prependLine(textarea: HTMLTextAreaElement, prefix: string): Promi
   const start = textarea.selectionStart;
   const content = store.content;
   const lineStart = content.lastIndexOf('\n', start - 1) + 1;
+  const savedScroll = textarea.scrollTop;
 
   store.updateContent(content.substring(0, lineStart) + prefix + content.substring(lineStart));
 
   await nextTick();
+  textarea.scrollTop = savedScroll;
   textarea.focus();
   const cursor = start + prefix.length;
   textarea.setSelectionRange(cursor, cursor);

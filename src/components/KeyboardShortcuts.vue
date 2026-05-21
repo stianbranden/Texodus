@@ -2,23 +2,37 @@
 import { onMounted, onUnmounted } from 'vue';
 import { useMarkdownPreview } from '../composables/useMarkdownPreview';
 import { applyFormat } from '../composables/useFormatting';
+import { useEditorStore } from '../stores/editor';
+import { openFile, saveFile, saveFileAs, newFile, closeFile } from '../services/fileService';
 
 const { getEditorElement } = useMarkdownPreview();
+const editorStore = useEditorStore();
 
-// File shortcuts (New / Open / Save / Save As) are owned by the native app
-// menu's accelerators — see composables/useAppMenu.ts. This handler covers
-// all 17 formatting shortcuts, and only fires while the editor textarea is focused.
+// On macOS, file shortcuts are handled by native menu accelerators (reliable there).
+// On Windows/Linux, WebView2/WebKitGTK intercepts keyboard events before the native
+// menu accelerator system fires, so we must handle file shortcuts in JS instead.
+const isMac = navigator.userAgent.includes('Macintosh');
+
 const handleKeydown = (e) => {
-  const ta = getEditorElement();
-  if (!ta || document.activeElement !== ta) return;
-
-  const isMac = navigator.userAgent.includes('Macintosh');
-  
-  // Modifiers
   const cmd = isMac ? e.metaKey : e.ctrlKey;
-  const ctrl = e.ctrlKey;
   const shift = e.shiftKey;
   const alt = e.altKey;
+  const ctrl = e.ctrlKey;
+
+  // File shortcuts — Windows/Linux only
+  if (!isMac && cmd && !alt) {
+    if (!shift) {
+      if (e.code === 'KeyN') { e.preventDefault(); void newFile(editorStore); return; }
+      if (e.code === 'KeyO') { e.preventDefault(); void openFile(editorStore); return; }
+      if (e.code === 'KeyS') { e.preventDefault(); void saveFile(editorStore); return; }
+      if (e.code === 'KeyW') { e.preventDefault(); void closeFile(editorStore); return; }
+    }
+    if (shift && e.code === 'KeyS') { e.preventDefault(); void saveFileAs(editorStore); return; }
+  }
+
+  // Formatting shortcuts — only when editor is focused
+  const ta = getEditorElement();
+  if (!ta || document.activeElement !== ta) return;
 
   // 1. Underline: ⌘U (Cmd+U on Mac, Ctrl+U on Windows)
   if (cmd && !shift && !alt && e.code === 'KeyU') {
