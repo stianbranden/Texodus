@@ -1,6 +1,21 @@
 import { defineStore } from 'pinia';
 import { type ColorSchemeId } from '../themes';
 
+export interface R2AccountConfig {
+  id: string;
+  label: string;
+  accountId: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+}
+
+export interface R2BucketConfig {
+  id: string;
+  accountConfigId: string;
+  bucketName: string;
+  jurisdiction?: 'eu';
+}
+
 export type LayoutMode = 'split' | 'preview' | 'focus';
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type { ColorSchemeId };
@@ -48,6 +63,8 @@ interface PersistedSettings {
   sidebarFolder: string | null;
   sidebarVisible: boolean;
   sidebarWidth: number;
+  r2Accounts: R2AccountConfig[];
+  r2Buckets: R2BucketConfig[];
 }
 
 interface SettingsState extends PersistedSettings {
@@ -66,6 +83,8 @@ const DEFAULTS: PersistedSettings = {
   sidebarFolder: null,
   sidebarVisible: false,
   sidebarWidth: 240,
+  r2Accounts: [],
+  r2Buckets: [],
 };
 
 function loadFromStorage(): SettingsState {
@@ -108,6 +127,13 @@ export const useSettingsStore = defineStore('settings', {
     setSidebarFolder(path: string | null) { this.sidebarFolder = path; },
     setSidebarVisible(v: boolean) { this.sidebarVisible = v; },
     setSidebarWidth(w: number) { this.sidebarWidth = Math.max(150, Math.min(600, w)); },
+    addR2Account(cfg: R2AccountConfig) { this.r2Accounts = [...this.r2Accounts, cfg]; },
+    removeR2Account(id: string) {
+      this.r2Accounts = this.r2Accounts.filter(a => a.id !== id);
+      this.r2Buckets = this.r2Buckets.filter(b => b.accountConfigId !== id);
+    },
+    addR2Bucket(cfg: R2BucketConfig) { this.r2Buckets = [...this.r2Buckets, cfg]; },
+    removeR2Bucket(id: string) { this.r2Buckets = this.r2Buckets.filter(b => b.id !== id); },
     persist() {
       if (typeof localStorage === 'undefined') return;
       try {

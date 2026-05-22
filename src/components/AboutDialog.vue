@@ -760,7 +760,7 @@ Public License instead of this License.  But first, please read
   width: 420px;
   max-width: 90vw;
   max-height: 80vh;
-  background: var(--bg-color);
+  background: var(--dialog-bg);
   border: 1px solid var(--border-color);
   border-radius: 16px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
@@ -772,9 +772,7 @@ Public License instead of this License.  But first, please read
 }
 
 .glass {
-  background: rgba(var(--bg-color-rgb, 255, 255, 255), 0.85);
-  backdrop-filter: blur(20px) saturate(1.8);
-  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  background: var(--dialog-bg);
 }
 
 @keyframes slideUp {
@@ -860,7 +858,7 @@ Public License instead of this License.  But first, please read
 }
 
 .tab-btn.active {
-  background: var(--bg-color);
+  background: var(--dialog-bg);
   color: var(--accent-color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }

@@ -142,7 +142,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
 .settings-dialog {
   width: 360px;
   max-width: 90vw;
-  background: var(--bg-color);
+  background: var(--dialog-bg);
   border: 1px solid var(--border-color);
   border-radius: 16px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
@@ -154,9 +154,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
 }
 
 .glass {
-  background: rgba(var(--bg-color-rgb, 255, 255, 255), 0.85);
-  backdrop-filter: blur(20px) saturate(1.8);
-  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  background: var(--dialog-bg);
 }
 
 @keyframes slideUp {

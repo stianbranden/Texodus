@@ -1,11 +1,11 @@
 <template>
-  <div class="theme-root" :class="resolvedTheme" :style="themeStyle">
+  <div class="theme-root" :class="resolvedTheme">
     <slot></slot>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, watchEffect, onMounted, onUnmounted, ref } from 'vue';
 import { useSettingsStore } from '../stores/settings';
 import { COLOR_SCHEMES } from '../themes';
 
@@ -32,12 +32,14 @@ const resolvedTheme = computed(() => {
   return settingsStore.themeMode;
 });
 
-const themeStyle = computed(() => {
+watchEffect(() => {
   const scheme = COLOR_SCHEMES.find(s => s.id === settingsStore.colorScheme) ?? COLOR_SCHEMES[0];
   const t = scheme[resolvedTheme.value];
-  return {
+  const root = document.documentElement;
+  const vars = {
     '--bg-color':               t.bgColor,
     '--bg-secondary':           t.bgSecondary,
+    '--dialog-bg':              t.dialogBg,
     '--toolbar-bg':             t.toolbarBg,
     '--border-color':           t.borderColor,
     '--text-color':             t.textColor,
@@ -63,6 +65,7 @@ const themeStyle = computed(() => {
     '--editor-font':            settingsStore.editorFont,
     '--preview-font':           settingsStore.previewFont,
   };
+  for (const [k, v] of Object.entries(vars)) root.style.setProperty(k, v);
 });
 </script>
 

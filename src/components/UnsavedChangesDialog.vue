@@ -56,7 +56,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey, true));
 .modal {
   min-width: 340px;
   max-width: 440px;
-  background: var(--bg-color);
+  background: var(--dialog-bg);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 1.25rem 1.5rem 1.1rem;

@@ -53,7 +53,8 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         // Persists window size/position/maximized state across restarts.
         // Saves on exit, restores automatically when the window is created.
-        .plugin(tauri_plugin_window_state::Builder::default().build());
+        .plugin(tauri_plugin_window_state::Builder::default().build())
+        .plugin(tauri_plugin_http::init());
 
     // Single-instance: when a user double-clicks a .md while Texodus is already
     // running, Windows/Linux spawn a second process; this plugin forwards its

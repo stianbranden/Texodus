@@ -4,6 +4,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useEditorStore } from '../stores/editor';
 import { useSettingsStore } from '../stores/settings';
 import { promptUnsavedChanges } from '../composables/useUnsavedPrompt';
+import { getObject, putObject } from './r2Service';
 
 const FILE_FILTERS =[{ name: 'Markdown', extensions: ['md', 'markdown', 'txt'] }];
 
@@ -52,6 +53,8 @@ export async function loadFileFromPath(store: EditorStore, path: string): Promis
 }
 
 export async function saveFile(store: EditorStore): Promise<boolean> {
+  if (store.filePath?.startsWith('r2://')) return saveR2File(store);
+
   try {
     if (!store.filePath) return await saveFileAs(store);
 
@@ -66,11 +69,60 @@ export async function saveFile(store: EditorStore): Promise<boolean> {
   }
 }
 
+async function saveR2File(store: EditorStore): Promise<boolean> {
+  try {
+    const uri = store.filePath!;
+    const withoutScheme = uri.slice('r2://'.length);
+    const slashIdx = withoutScheme.indexOf('/');
+    if (slashIdx === -1) throw new Error('Invalid R2 URI');
+    const bucketConfigId = withoutScheme.slice(0, slashIdx);
+    const key = withoutScheme.slice(slashIdx + 1);
+
+    const settings = useSettingsStore();
+    const bucket = settings.r2Buckets.find(b => b.id === bucketConfigId);
+    if (!bucket) throw new Error('R2 bucket config not found');
+    const account = settings.r2Accounts.find(a => a.id === bucket.accountConfigId);
+    if (!account) throw new Error('R2 account config not found');
+
+    await putObject(account, bucket, key, store.content);
+    store.setDirty(false);
+    await updateWindowTitle(store);
+    showToast('Saved to R2');
+    return true;
+  } catch (e) {
+    await showError('Failed to save to R2', e);
+    return false;
+  }
+}
+
+export async function loadR2File(
+  store: EditorStore,
+  bucketConfigId: string,
+  key: string,
+): Promise<void> {
+  if (!(await confirmCanProceed(store))) return;
+  try {
+    const settings = useSettingsStore();
+    const bucket = settings.r2Buckets.find(b => b.id === bucketConfigId);
+    if (!bucket) throw new Error('R2 bucket config not found');
+    const account = settings.r2Accounts.find(a => a.id === bucket.accountConfigId);
+    if (!account) throw new Error('R2 account config not found');
+    const content = await getObject(account, bucket, key);
+    store.loadFile(content, `r2://${bucketConfigId}/${key}`);
+    await updateWindowTitle(store);
+  } catch (e) {
+    await showError('Failed to open R2 file', e);
+  }
+}
+
 export async function saveFileAs(store: EditorStore): Promise<boolean> {
   try {
+    const localDefault = (store.filePath && !store.filePath.startsWith('r2://'))
+      ? store.filePath
+      : 'untitled.md';
     const selected = await save({
       filters: [{ name: 'Markdown', extensions: ['md'] }],
-      defaultPath: store.filePath || 'untitled.md',
+      defaultPath: localDefault,
     });
     if (!selected) return false;
 

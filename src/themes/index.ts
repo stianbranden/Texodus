@@ -1,6 +1,7 @@
 export interface ThemeTokens {
   bgColor: string;
   bgSecondary: string;
+  dialogBg: string;
   toolbarBg: string;
   borderColor: string;
   textColor: string;
@@ -45,6 +46,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     light: {
       bgColor:              '#fafafa',
       bgSecondary:          '#f3f4f6',
+      dialogBg:             '#fafafa',
       toolbarBg:            'rgba(255,255,255,0.85)',
       borderColor:          '#e2e5ea',
       textColor:            '#1a1d23',
@@ -70,6 +72,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     dark: {
       bgColor:              '#0d0f14',
       bgSecondary:          '#151821',
+      dialogBg:             '#1c2030',
       toolbarBg:            'rgba(16,18,26,0.88)',
       borderColor:          '#252836',
       textColor:            '#e2e4eb',
@@ -99,6 +102,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     light: {
       bgColor:              '#fdf6e3',
       bgSecondary:          '#eee8d5',
+      dialogBg:             '#fdf6e3',
       toolbarBg:            'rgba(253,246,227,0.9)',
       borderColor:          '#d8d2b8',
       textColor:            '#657b83',
@@ -124,6 +128,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     dark: {
       bgColor:              '#002b36',
       bgSecondary:          '#073642',
+      dialogBg:             '#0e3c4e',
       toolbarBg:            'rgba(0,43,54,0.9)',
       borderColor:          '#0d3f4f',
       textColor:            '#839496',
@@ -153,6 +158,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     light: {
       bgColor:              '#eceff4',
       bgSecondary:          '#e5e9f0',
+      dialogBg:             '#eceff4',
       toolbarBg:            'rgba(236,239,244,0.9)',
       borderColor:          '#d8dee9',
       textColor:            '#2e3440',
@@ -178,6 +184,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     dark: {
       bgColor:              '#2e3440',
       bgSecondary:          '#3b4252',
+      dialogBg:             '#414c5e',
       toolbarBg:            'rgba(46,52,64,0.9)',
       borderColor:          '#4c566a',
       textColor:            '#eceff4',
@@ -207,6 +214,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     light: {
       bgColor:              '#fafafa',
       bgSecondary:          '#f4f4f4',
+      dialogBg:             '#fafafa',
       toolbarBg:            'rgba(250,250,250,0.9)',
       borderColor:          '#e0e0e0',
       textColor:            '#272822',
@@ -232,6 +240,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     dark: {
       bgColor:              '#272822',
       bgSecondary:          '#3e3d32',
+      dialogBg:             '#38372d',
       toolbarBg:            'rgba(39,40,34,0.9)',
       borderColor:          '#49483e',
       textColor:            '#f8f8f2',
@@ -261,6 +270,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     light: {
       bgColor:              '#f8f8f2',
       bgSecondary:          '#f0f0eb',
+      dialogBg:             '#f8f8f2',
       toolbarBg:            'rgba(248,248,242,0.9)',
       borderColor:          '#e0dfd6',
       textColor:            '#282a36',
@@ -286,6 +296,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     dark: {
       bgColor:              '#282a36',
       bgSecondary:          '#44475a',
+      dialogBg:             '#363848',
       toolbarBg:            'rgba(40,42,54,0.9)',
       borderColor:          '#44475a',
       textColor:            '#f8f8f2',
@@ -315,6 +326,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     light: {
       bgColor:              '#ffffff',
       bgSecondary:          '#f6f8fa',
+      dialogBg:             '#ffffff',
       toolbarBg:            'rgba(255,255,255,0.9)',
       borderColor:          '#d0d7de',
       textColor:            '#24292f',
@@ -340,6 +352,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     dark: {
       bgColor:              '#0d1117',
       bgSecondary:          '#161b22',
+      dialogBg:             '#1e2533',
       toolbarBg:            'rgba(13,17,23,0.9)',
       borderColor:          '#30363d',
       textColor:            '#e6edf3',
@@ -369,6 +382,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     light: {
       bgColor:              '#eff1f5',
       bgSecondary:          '#e6e9ef',
+      dialogBg:             '#eff1f5',
       toolbarBg:            'rgba(239,241,245,0.9)',
       borderColor:          '#ccd0da',
       textColor:            '#4c4f69',
@@ -394,6 +408,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     dark: {
       bgColor:              '#1e1e2e',
       bgSecondary:          '#181825',
+      dialogBg:             '#2a2a3e',
       toolbarBg:            'rgba(30,30,46,0.9)',
       borderColor:          '#313244',
       textColor:            '#cdd6f4',
@@ -423,6 +438,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     light: {
       bgColor:              '#fdf6e3',
       bgSecondary:          '#f4f0d9',
+      dialogBg:             '#fdf6e3',
       toolbarBg:            'rgba(253,246,227,0.9)',
       borderColor:          '#e0dcc7',
       textColor:            '#5c6a72',
@@ -448,6 +464,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     dark: {
       bgColor:              '#2d353b',
       bgSecondary:          '#343f44',
+      dialogBg:             '#3e4d54',
       toolbarBg:            'rgba(45,53,59,0.9)',
       borderColor:          '#4f585e',
       textColor:            '#d3c6aa',
@@ -477,6 +494,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     light: {
       bgColor:              '#ffffff',
       bgSecondary:          '#f4faf6',
+      dialogBg:             '#ffffff',
       toolbarBg:            'rgba(255,255,255,0.9)',
       borderColor:          '#c8e0cf',
       textColor:            '#0d3818',
@@ -502,6 +520,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     dark: {
       bgColor:              '#000d05',
       bgSecondary:          '#001a0d',
+      dialogBg:             '#001f0d',
       toolbarBg:            'rgba(0,13,5,0.92)',
       borderColor:          '#006622',
       textColor:            '#33ff66',
@@ -531,6 +550,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     light: {
       bgColor:              '#fbf1c7',
       bgSecondary:          '#ebdbb2',
+      dialogBg:             '#fbf1c7',
       toolbarBg:            'rgba(251,241,199,0.9)',
       borderColor:          '#d5c4a1',
       textColor:            '#3c3836',
@@ -556,6 +576,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
     dark: {
       bgColor:              '#282828',
       bgSecondary:          '#3c3836',
+      dialogBg:             '#383530',
       toolbarBg:            'rgba(40,40,40,0.9)',
       borderColor:          '#504945',
       textColor:            '#ebdbb2',

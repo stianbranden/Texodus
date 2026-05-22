@@ -35,6 +35,16 @@
     "shell:default",
     "shell:allow-open",
     "core:window:allow-start-dragging",
-    "window-state:default"
+    "window-state:default",
+    {
+      "identifier": "http:allow-fetch",
+      "allow": [
+        { "url": "https://*.r2.cloudflarestorage.com/**" },
+        { "url": "https://*.eu.r2.cloudflarestorage.com/**" }
+      ]
+    },
+    "http:allow-fetch-send",
+    "http:allow-fetch-read-body",
+    "http:allow-fetch-cancel"
   ]
 }
